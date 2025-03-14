@@ -1,0 +1,33 @@
+﻿version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=db;Database=productmanagerdb;Username=userTest;Password=test
+    networks:
+      - productmanager-network
+
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: userTest
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: productmanagerdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - productmanager-network
+
+networks:
+  productmanager-network:
+
+volumes:
+  postgres_data:
