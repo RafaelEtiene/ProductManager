@@ -2,7 +2,7 @@
 
 @{
     ViewData["Title"] = "Editar Produto";
-    Layout = "_Layout"; // Usando o layout definido no arquivo _Layout.cshtml
+    Layout = "_Layout";
 }
 
 <div class="container mt-4">
@@ -19,19 +19,16 @@
             <!-- Nome -->
             <div class="col-md-6 mb-3">
                 <label for="Nome" class="form-label">Nome</label>
-                <input type="text" class="form-control" id="Nome" name="Nome" value="@Model.Nome" required maxlength="100" />
-                <div class="invalid-feedback">
-                    O nome é obrigatório e deve ter no máximo 100 caracteres.
-                </div>
+                <input type="text" class="form-control" id="Nome" name="Nome" value="@Model.Nome" required />
+                <span asp-validation-for="Nome" class="text-danger"></span>
             </div>
 
             <!-- Preço -->
             <div class="col-md-6 mb-3">
                 <label for="Preco" class="form-label">Preço</label>
-                <input type="number" class="form-control" id="Preco" name="Preco" value="@Model.Preco" required min="0.01" step="0.01" />
-                <div class="invalid-feedback">
-                    O preço deve ser maior que zero.
-                </div>
+                <input type="text" class="form-control text-end" id="Preco" name="Preco"
+                       value="@Model.Preco.ToString("N2", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))" required />
+                <span asp-validation-for="Preco" class="text-danger"></span>
             </div>
         </div>
 
@@ -39,9 +36,7 @@
         <div class="mb-3">
             <label for="Descricao" class="form-label">Descrição</label>
             <textarea class="form-control" id="Descricao" name="Descricao">@Model.Descricao</textarea>
-            <div class="invalid-feedback">
-                A descrição não pode ser vazia.
-            </div>
+            <span asp-validation-for="Descricao" class="text-danger"></span>
         </div>
 
         <!-- Botões -->
@@ -53,26 +48,5 @@
 </div>
 
 @section Scripts {
-    <script>
-        // Habilitar validação do Bootstrap 5
-        (function () {
-            'use strict'
-
-            // Obtém todos os formulários que possuem a classe needs-validation
-            var forms = document.querySelectorAll('.needs-validation')
-
-            // Loop para impedir o envio do formulário se estiver inválido
-            Array.prototype.slice.call(forms)
-                .forEach(function (form) {
-                    form.addEventListener('submit', function (event) {
-                        if (!form.checkValidity()) {
-                            event.preventDefault()
-                            event.stopPropagation()
-                        }
-
-                        form.classList.add('was-validated')
-                    }, false)
-                })
-        })()
-    </script>
+    <partial name="_ValidationScriptsPartial" />
 }

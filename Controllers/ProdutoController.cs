@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using ProductManager.Models.Entities;
 using ProductManager.Services;
 
@@ -14,13 +13,11 @@ namespace ProductManager.Controllers
             _service = service;
         }
 
-        // GET: Produto
         public async Task<IActionResult> Index()
         {
             return View(await _service.GetProdutosAsync());
         }
 
-        // GET: Produto/Create
         public IActionResult Create()
         {
             return View(new Produto());
@@ -32,94 +29,82 @@ namespace ProductManager.Controllers
         {
             if (ModelState.IsValid)
             {
+                var produtoExistente = await _service.ValidarProdutosAsync(e => e.Nome.ToLower() == produto.Nome.ToLower());
+                if (produtoExistente)
+                {
+                    ModelState.AddModelError("Nome", "Já existe um produto com esse nome!");
+                    return View(produto);
+                }
                 await _service.InsertProdutoAsync(produto);
                 return RedirectToAction(nameof(Index));
             }
 
-            // Caso a validação falhe, retorne com os erros
             return View(produto);
         }
 
-        //public async Task<IActionResult> Edit(int? Id)
-        //{
-        //    if (Id == null)
-        //    {
-        //        return NotFound();
-        //    }
+        public async Task<IActionResult> Edit(int? Id)
+        {
+            if (Id == null)
+            {
+                return NotFound();
+            }
 
-        //    var produto = await _context.produtos.findasync(id);
-        //    if (produto == null)
-        //    {
-        //        return notfound();
-        //    }
-        //    return view(produto);
-        //}
+            var produto = await _service.GetProdutoByIdAsync(Id.Value);
 
-        //// POST: Produto/Edit/5
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Edit(int id, [Bind("Id,Nome,Preco")] Produto produto)
-        //{
-        //    if (id != produto.Id)
-        //    {
-        //        return NotFound();
-        //    }
+            if (produto == null)
+            {
+                return NotFound();
+            }
+            return View(produto);
+        }
 
-        //    if (ModelState.IsValid)
-        //    {
-        //        try
-        //        {
-        //            _context.Update(produto);
-        //            await _context.SaveChangesAsync();
-        //        }
-        //        catch (DbUpdateConcurrencyException)
-        //        {
-        //            if (!ProdutoExists(produto.Id))
-        //            {
-        //                return NotFound();
-        //            }
-        //            else
-        //            {
-        //                throw;
-        //            }
-        //        }
-        //        return RedirectToAction(nameof(Index));
-        //    }
-        //    return View(produto);
-        //}
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Nome,Preco,Descricao")] Produto produto)
+        {
+            if (id != produto.Id)
+            {
+                return NotFound();
+            }
 
-        //// GET: Produto/Delete/5
-        //public async Task<IActionResult> Delete(int? id)
-        //{
-        //    if (id == null)
-        //    {
-        //        return NotFound();
-        //    }
+            if (ModelState.IsValid)
+            {
+                var produtoExistente = await _service.ValidarProdutosAsync(e => e.Nome.ToLower() == produto.Nome.ToLower() && e.Id != produto.Id);
+                if (produtoExistente)
+                {
+                    ModelState.AddModelError("Nome", "Já existe um produto com esse nome!");
+                }
 
-        //    var produto = await _context.Produtos
-        //        .FirstOrDefaultAsync(m => m.Id == id);
-        //    if (produto == null)
-        //    {
-        //        return NotFound();
-        //    }
+                await _service.UpdateProdutoAsync(produto);
+                return RedirectToAction(nameof(Index));
+            }
 
-        //    return View(produto);
-        //}
+            return View(produto);
+        }
 
-        //// POST: Produto/Delete/5
-        //[HttpPost, ActionName("Delete")]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> DeleteConfirmed(int id)
-        //{
-        //    var produto = await _context.Produtos.FindAsync(id);
-        //    _context.Produtos.Remove(produto);
-        //    await _context.SaveChangesAsync();
-        //    return RedirectToAction(nameof(Index));
-        //}
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
 
-        //private bool ProdutoExists(int id)
-        //{
-        //    return _context.Produtos.Any(e => e.Id == id);
-        //}
+            var produto = await _service.GetProdutoByIdAsync(id.Value);
+
+            if (produto == null)
+            {
+                return NotFound();
+            }
+
+            return View(produto);
+        }
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            await _service.DeleteProdutoAsync(id);
+            return RedirectToAction(nameof(Index));
+        }
     }
 }
